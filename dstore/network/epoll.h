@@ -12,7 +12,7 @@ class EventLoop;
 class EpollAPI : public EventPollAPI
 {
  public:
-  explicit EpollAPI(EventLoop &loop);
+  explicit EpollAPI(EventLoop *loop);
   virtual ~EpollAPI();
   virtual int init(void);
   virtual int register_event(int fd, int type);
@@ -28,7 +28,7 @@ class EpollAPI : public EventPollAPI
   int epfd_;
   struct epoll_event *events_;
   int loop_size_;
-  EventLoop &loop_;
+  EventLoop *loop_;
 };
 }  // end namespace network
 }  // end namespace dstore

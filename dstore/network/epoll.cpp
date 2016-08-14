@@ -7,7 +7,7 @@
 using namespace dstore::common;
 using namespace dstore::network;
 
-EpollAPI::EpollAPI(EventLoop &loop)
+EpollAPI::EpollAPI(EventLoop *loop)
   : epfd_(0), events_(nullptr), loop_(loop)
 {
 }
@@ -149,7 +149,7 @@ int EpollAPI::loop(int timeout)
     if (e->events & EPOLLOUT) {
       event_type |= Event::kEventWrite;
     }
-    loop_.add_ready_event(e->data.fd, event_type);
+    loop_->add_ready_event(e->data.fd, event_type);
   }
   if (events_num == loop_size_) {
     int tmp_ret = DSTORE_SUCCESS;

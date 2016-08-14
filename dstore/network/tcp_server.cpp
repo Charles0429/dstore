@@ -36,7 +36,7 @@ int TCPServer::start(void)
     return ret;
   }
   // init event loop
-  EventPollAPI *poll_api = new EpollAPI(loop_);
+  EventPollAPI *poll_api = new EpollAPI(&loop_);
   if (DSTORE_SUCCESS != (ret = loop_.init(poll_api))) {
     LOG_ERROR("init event loop failed, ret=%d", ret);
     return ret;

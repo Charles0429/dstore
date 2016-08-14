@@ -18,7 +18,7 @@ class ListenSocket
   int socket(const InetAddr &addr);
   int bind(const InetAddr &addr);
   int listen(int backlog);
-  int accept(int &fd, InetAddr *addr);
+  int accept(int *fd, InetAddr *addr);
   int set_reuseaddr(void);
   int set_nonblocking(void);
   ListenSocket &operator=(const ListenSocket &) = delete;

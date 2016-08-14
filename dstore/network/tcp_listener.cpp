@@ -67,7 +67,7 @@ int TCPListener::accept(int fd, int type, void *args)
   int ret = DSTORE_SUCCESS;
   int new_fd = -1;
   InetAddr addr;
-  if (DSTORE_SUCCESS != (ret = socket_.accept(new_fd, &addr))) {
+  if (DSTORE_SUCCESS != (ret = socket_.accept(&new_fd, &addr))) {
     LOG_WARN("accept failed, ret=%d", ret);
     return ret;
   }

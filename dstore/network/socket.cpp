@@ -59,11 +59,11 @@ int ListenSocket::listen(int backlog)
   return ret;
 }
 
-int ListenSocket::accept(int &fd, InetAddr *addr)
+int ListenSocket::accept(int *fd, InetAddr *addr)
 {
   int ret = DSTORE_SUCCESS;
-  fd = dstore::network::accept(listen_fd_, addr->get_addr(), addr->get_addr_len());
-  if (-1 == ret) {
+  *fd = dstore::network::accept(listen_fd_, addr->get_addr(), addr->get_addr_len());
+  if (-1 == *fd) {
     ret = DSTORE_ACCEPT_ERROR;
   }
   return ret;
