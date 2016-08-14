@@ -1,0 +1,1 @@
+./cpplint.py $(find . -name *.h -or -name *.cpp | grep -vE "^./build/") 2>&1 | grep -v "should almost always be" | grep -v "Include the directory when naming" | grep -v "Do not use namespace using-directives" | grep -v "No copyright message found"
