@@ -2,6 +2,7 @@
 #define DSTORE_NETWORK_EPOLL_H_
 
 #include <sys/epoll.h>
+#include <memory>
 #include "event_poll_api.h"
 
 namespace dstore
@@ -28,7 +29,7 @@ class EpollAPI : public EventPollAPI
   int epfd_;
   struct epoll_event *events_;
   int loop_size_;
-  EventLoop *loop_;
+  std::shared_ptr<EventLoop> loop_;
 };
 }  // end namespace network
 }  // end namespace dstore

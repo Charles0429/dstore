@@ -59,7 +59,6 @@ int InetAddr::resolve(void)
   int ret = DSTORE_SUCCESS;
   struct addrinfo hints;
   struct addrinfo *res = nullptr;
-  struct addrinfo *res_save = nullptr;
 
   ::memset(&hints, 0, sizeof(struct addrinfo));
   if (is_ai_passive_) {
@@ -87,7 +86,7 @@ int InetAddr::resolve(void)
   ai_family_ = res->ai_family;
   ai_socktype_ = res->ai_socktype;
   ai_protocol_ = res->ai_protocol;
-  ::freeaddrinfo(res_save);
+  ::freeaddrinfo(res);
   is_resolved_ = true;
   return ret;
 }

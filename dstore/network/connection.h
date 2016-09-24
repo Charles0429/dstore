@@ -42,6 +42,7 @@ class Connection
   void close(void);
   bool pending_write(void);
   std::list<Message *> &get_message_list(void);
+  void clear_message_list(void);
   Connection &operator=(const Connection &) = delete;
   Connection(const Connection &) = delete;
  private:

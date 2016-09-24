@@ -47,7 +47,7 @@ int process_message(Connection *conn)
   int ret = DSTORE_SUCCESS;
   LOG_INFO("start processing message");
   std::list<Message *> &message_list = conn->get_message_list();
-  for (auto iter = message_list.begin(); iter != message_list.end(); ++iter) {
+  for (auto iter = message_list.begin(); iter != message_list.end();) {
     LOG_INFO("start dealing with message");
     char buffer[1024];
     snprintf(buffer, sizeof(buffer), "hello world");
@@ -57,7 +57,12 @@ int process_message(Connection *conn)
     LOG_INFO("writetable_bytes=%d", write_buffer.get_need_write_bytes());
     if (DSTORE_SUCCESS != (ret = conn->add_write())) {
       LOG_INFO("add write event failed, ret=%d", ret);
+      return ret;
     }
+    simple_packet *packet = static_cast<simple_packet *>((*iter)->get_request());
+    delete packet;
+    delete *iter;
+    iter = message_list.erase(iter);
   }
   return ret;
 }
