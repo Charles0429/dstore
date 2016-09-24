@@ -39,9 +39,16 @@ foreach(src_file ${NETWORK_SRCS})
   set(SRCS ${SRCS} "dstore/network/${src_file}")
 endforeach(src_file)
 
+foreach(src_file ${TEST_SRCS})
+  set (EXECUTE_TEST_SRCS ${SRCS} "dstore/test/${src_file}")
+  string(REPLACE "." ";" src_list ${src_file})
+  list(GET src_list 0 EXECUTABLE_NAME)
+  add_executable(${EXECUTABLE_NAME} ${EXECUTE_TEST_SRCS})
+endforeach(src_file)
+
 foreach(src_file ${MAIN_SRCS})
   set(SRCS ${SRCS} "dstore/main/${src_file}")
 endforeach(src_file)
 
-message(STATUS "${SRCS}")
-add_executable(dstore ${SRCS})
+#message(STATUS "${SRCS}")
+#add_executable(dstore ${SRCS})

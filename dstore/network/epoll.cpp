@@ -134,7 +134,7 @@ int EpollAPI::loop(int timeout)
   events_num = epoll_wait(epfd_, events_, loop_size_, timeout);
   if (-1 == events_num) {
     ret = DSTORE_EPOLL_ERROR;
-    LOG_WARN("epoll wait failed, epfd_=%d, loop_size=%d, errno = %d, ret=%d", 
+    LOG_WARN("epoll wait failed, epfd_=%d, loop_size=%d, errno = %d, ret=%d",
         epfd_, loop_size_, errno, ret);
     return ret;
   }

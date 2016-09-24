@@ -27,7 +27,7 @@ class Buffer
   int32_t peek_int32(void);
   int64_t peek_int64(void);
   void *peek(void);
-  void forward(size_t nbytes);
+  void consume(size_t nbytes);
   size_t get_read_bytes(void);
   size_t get_need_write_bytes(void);
   size_t get_read_pos(void);

@@ -1,5 +1,5 @@
-#ifndef DSTORE_NETWORK_ENDIAN_H_
-#define DSTORE_NETWORK_ENDIAN_H_
+#ifndef DSTORE_NETWORK_ENDIAN_OPERATOR_H_
+#define DSTORE_NETWORK_ENDIAN_OPERATOR_H_
 
 #include <cstdint>
 
@@ -17,4 +17,4 @@ namespace network
 }  // end namespace network
 }  // end namespace dstore
 
-#endif  // DSTORE_NETWORK_ENDIAN_H_
+#endif  // DSTORE_NETWORK_ENDIAN_OPERATOR_H_

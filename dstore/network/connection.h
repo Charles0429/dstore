@@ -25,7 +25,7 @@ class Connection
     SHUTDOWN_WRITE,
   };
   Connection(const Event &e, const InetAddr &peer);
-  int init(EventLoop &loop);
+  int init(EventLoop *loop);
   void set_event(const Event &e);
   Event &get_event(void);
   Buffer &get_read_buffer(void);

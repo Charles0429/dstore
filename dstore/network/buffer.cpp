@@ -37,7 +37,7 @@ ssize_t Buffer::write_fd(int fd)
 void Buffer::append(const char *buf, size_t nbytes)
 {
   resize(nbytes);
-  std::copy(buf, buf + nbytes, buffer_.data() + write_pos_);
+  ::memcpy(buffer_.data() + write_pos_, buf, nbytes);
   write_pos_ += nbytes;
 }
 
@@ -69,7 +69,7 @@ void *Buffer::peek(void)
   return buffer_.data();
 }
 
-void Buffer::forward(size_t nbytes)
+void Buffer::consume(size_t nbytes)
 {
   read_pos_ += nbytes;
 }
@@ -85,7 +85,7 @@ int16_t Buffer::get_int16(void)
 {
   assert(get_read_bytes() >= sizeof(int16_t));
   int16_t ret = peek_int16();
-  forward(sizeof(int16_t));
+  consume(sizeof(int16_t));
   return ret;
 }
 
@@ -100,7 +100,7 @@ int32_t Buffer::get_int32(void)
 {
   assert(get_read_bytes() >= sizeof(int32_t));
   int32_t ret = peek_int32();
-  forward(sizeof(int32_t));
+  consume(sizeof(int32_t));
   return ret;
 }
 
@@ -115,7 +115,7 @@ int64_t Buffer::get_int64(void)
 {
   assert(get_read_bytes() >= sizeof(int64_t));
   int64_t ret = peek_int64();
-  forward(sizeof(int64_t));
+  consume(sizeof(int64_t));
   return ret;
 }
 

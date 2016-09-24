@@ -11,14 +11,14 @@ Connection::Connection(const Event &e, const InetAddr &peer)
 {
 }
 
-int Connection::init(EventLoop &loop)
+int Connection::init(EventLoop *loop)
 {
   int ret = DSTORE_SUCCESS;
   if (DSTORE_SUCCESS != (ret = socket_.set_nonblocking())) {
     LOG_INFO("set nonblocking failed, ret=%d", ret);
     return ret;
   }
-  loop_ = &loop;
+  loop_ = loop;
   return ret;
 }
 

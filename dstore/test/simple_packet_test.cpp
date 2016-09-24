@@ -1,9 +1,10 @@
+#include <list>
+#include <iostream>
 #include "tcp_server.h"
 #include "connection.h"
 #include "message.h"
 #include "errno_define.h"
 #include "log.h"
-#include <iostream>
 
 using namespace dstore::common;
 using namespace dstore::network;
@@ -37,7 +38,7 @@ int decode_message(Connection *conn)
   packet->data = data + header_len;
   Message *message = new Message(static_cast<void *>(packet));
   conn->add_message(message);
-  read_buffer.forward(data_len + header_len);
+  read_buffer.consume(data_len + header_len);
   return ret;
 }
 
@@ -48,8 +49,8 @@ int process_message(Connection *conn)
   std::list<Message *> &message_list = conn->get_message_list();
   for (auto iter = message_list.begin(); iter != message_list.end(); ++iter) {
     LOG_INFO("start dealing with message");
-    char *buffer = static_cast<char *>(malloc(1024));
-    snprintf(buffer, 1024, "hello world");
+    char buffer[1024];
+    snprintf(buffer, sizeof(buffer), "hello world");
     Buffer &write_buffer = conn->get_write_buffer();
     write_buffer.append_int32(static_cast<int32_t>(strlen(buffer)));
     write_buffer.append(buffer, strlen(buffer));

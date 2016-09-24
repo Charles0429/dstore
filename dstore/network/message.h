@@ -7,11 +7,11 @@ namespace network
 {
 class Message
 {
-public:
+ public:
   explicit Message(void *request);
   void *get_request(void) { return request_; }
   void set_request(void *request) { request_ = request; }
-private:
+ private:
   void *request_;
 };
 }  // end namespace network

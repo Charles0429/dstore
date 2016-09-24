@@ -91,7 +91,7 @@ int TCPServer::on_connect(int fd, InetAddr *addr)
   }
   Connection *connection = new Connection(e, *addr);
   connection_map_[next_connection_id_++] = connection;
-  if (DSTORE_SUCCESS != (ret = connection->init(loop_))) {
+  if (DSTORE_SUCCESS != (ret = connection->init(&loop_))) {
     LOG_WARN("init connection failed, ret=%d", ret);
     return ret;
   }
@@ -182,7 +182,7 @@ int TCPServer::handle_close(const int64_t connection_id)
 {
   int ret = DSTORE_SUCCESS;
   Connection *conn = connection_map_[connection_id];
-  assert (conn != nullptr);
+  assert(conn != nullptr);
   bool has_data_to_write = conn->pending_write();
   if (!has_data_to_write) {
     remove_connection(connection_id);
