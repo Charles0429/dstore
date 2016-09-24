@@ -1,4 +1,5 @@
 #include "tcp_server.h"
+#include <cassert>
 #include "errno_define.h"
 #include "log.h"
 #include "epoll.h"
@@ -15,7 +16,8 @@ TCPServer::TCPServer(void)
 
 TCPServer::TCPServer(const char *host, const char *port, const bool is_ipv6)
   : host_(host), port_(port), is_ipv6_(is_ipv6), loop_(), listener_(),
-    connection_map_(), next_connection_id_(0)
+  connection_map_(), next_connection_id_(0), message_decoder_(),
+  new_message_callback_()
 {
 }
 
@@ -48,14 +50,30 @@ int TCPServer::start(void)
     return ret;
   }
 
+  LOG_INFO("listener started");
   // set connection callback
   listener_.set_new_connection_callback(std::bind(&TCPServer::on_connect, this, _1, _2));
   return ret;
 }
 
-void TCPServer::loop(void)
+int TCPServer::loop(void)
 {
-  loop_.loop();
+  int ret = DSTORE_SUCCESS;
+  if (DSTORE_SUCCESS != (ret = loop_.loop())) {
+    LOG_WARN("loop failed, ret=%d", ret);
+    return ret;
+  }
+  return ret;
+}
+
+void TCPServer::set_message_decode_callback(const MessageDecodeCallback &message_decode)
+{
+  message_decoder_ = message_decode;
+}
+
+void TCPServer::set_new_message_callback(const NewMessageCallback &new_message)
+{
+  new_message_callback_ = new_message;
 }
 
 int TCPServer::on_connect(int fd, InetAddr *addr)
@@ -71,8 +89,12 @@ int TCPServer::on_connect(int fd, InetAddr *addr)
     LOG_WARN("register event failed, fd=%d, type=%d, ret=%d", e.fd, e.type, ret);
     return ret;
   }
-  Connection *connection = new Connection(fd, *addr);
+  Connection *connection = new Connection(e, *addr);
   connection_map_[next_connection_id_++] = connection;
+  if (DSTORE_SUCCESS != (ret = connection->init(loop_))) {
+    LOG_WARN("init connection failed, ret=%d", ret);
+    return ret;
+  }
   return ret;
 }
 
@@ -85,11 +107,13 @@ int TCPServer::on_read(int fd, int type, void *args)
   const int nbytes = 1024;
   ssize_t read_bytes = read_buffer.read_fd(fd, nbytes);
   if (0 == read_bytes) {
-    // close the fd
+    if (DSTORE_SUCCESS != (ret = handle_close(connection_id))) {
+      LOG_WARN("handle close failed, ret=%d", ret);
+      return ret;
+    }
     return ret;
   }
-  bool has_new_message = false;
-  if (DSTORE_SUCCESS != (ret = message_decoder_(connection, has_new_message))) {
+  if (DSTORE_SUCCESS != (ret = message_decoder_(connection))) {
     LOG_WARN("decode message failed, ret=%d", ret);
     return ret;
   }
@@ -104,16 +128,66 @@ int TCPServer::on_write(int fd, int type, void *args)
   Buffer &write_buffer = connection->get_write_buffer();
   ssize_t write_bytes = write_buffer.write_fd(fd);
   if (-1 == write_bytes) {
-    // handle error
+    remove_connection(connection_id);
     return ret;
   }
-  size_t writeable_bytes = write_buffer.get_write_bytes();
-  if (0 == writeable_bytes) {
-    connection->remove_write();
-    ret = loop_.modify_event(connection->get_event());
-  } else if (writeable_bytes > 0) {
+  size_t need_write_bytes = write_buffer.get_need_write_bytes();
+  if (0 == need_write_bytes) {
+    if (DSTORE_SUCCESS != (ret = connection->remove_write())) {
+      LOG_WARN("remove write event from connection_id=%d failed, ret=%d", connection_id, ret);
+      return ret;
+    }
+    if (Connection::SHUTDOWN_READ == connection->get_status()) {
+      if (DSTORE_SUCCESS != (ret = handle_close(connection_id))) {
+        LOG_WARN("handle close connection failed, ret=%d", ret);
+        return ret;
+      }
+    }
+  } else if (need_write_bytes > 0) {
     // do not modify the event
     // just let it in loop again
+  }
+  return ret;
+}
+
+void TCPServer::remove_connection(const int64_t connection_id)
+{
+  Connection *conn = connection_map_[connection_id];
+  conn->close();
+  delete conn;
+  connection_map_.erase(connection_id);
+}
+
+int TCPServer::set_connection_status(const int64_t connection_id, const Connection::Status status)
+{
+  int ret = DSTORE_SUCCESS;
+  Connection *conn = connection_map_[connection_id];
+  if (status == Connection::SHUTDOWN_READ) {
+    if (DSTORE_SUCCESS != (ret = conn->remove_read())) {
+      LOG_WARN("remove connection read event failed, ret=%d", ret);
+      return ret;
+    }
+    conn->set_status(Connection::SHUTDOWN_READ);
+  } else if (status == Connection::SHUTDOWN_WRITE) {
+    if (DSTORE_SUCCESS != (ret = conn->remove_write())) {
+      LOG_WARN("remove connection write event failed, ret=%d", ret);
+      return ret;
+    }
+    conn->set_status(Connection::SHUTDOWN_WRITE);
+  }
+  return ret;
+}
+
+int TCPServer::handle_close(const int64_t connection_id)
+{
+  int ret = DSTORE_SUCCESS;
+  Connection *conn = connection_map_[connection_id];
+  assert (conn != nullptr);
+  bool has_data_to_write = conn->pending_write();
+  if (!has_data_to_write) {
+    remove_connection(connection_id);
+  } else {
+    set_connection_status(connection_id, Connection::SHUTDOWN_READ);
   }
   return ret;
 }

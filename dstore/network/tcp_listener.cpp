@@ -1,13 +1,14 @@
 #include "tcp_listener.h"
 #include "errno_define.h"
 #include "log.h"
+#include <iostream>
 
 using namespace std::placeholders;
 using namespace dstore::common;
 using namespace dstore::network;
 
 TCPListener::TCPListener(void)
-  : addr_(), socket_()
+  : addr_(), socket_(), e_(), on_connect_()
 {
 }
 
@@ -22,6 +23,7 @@ int TCPListener::set_addr(const char *host, const char *port, bool is_ipv6)
   ret = addr_.set_addr(host, port, is_ipv6, is_ai_passive);
   if (DSTORE_SUCCESS != ret) {
     LOG_WARN("set addr failed, host=%s, port=%s, is_ipv6=%d, ret=%d", host, port, is_ipv6, ret);
+    return ret;
   }
   return ret;
 }
@@ -47,6 +49,10 @@ int TCPListener::start(void)
     LOG_WARN("set reuseaddr failed, ret=%d", ret);
     return ret;
   }
+  if (DSTORE_SUCCESS != (ret = socket_.set_nonblocking())) {
+    LOG_WARN("set non blocking failed, ret=%d", ret);
+    return ret;
+  }
   if (DSTORE_SUCCESS != (ret = socket_.bind(addr_))) {
     LOG_WARN("bind failed, ret=%d", ret);
     return ret;
@@ -56,9 +62,10 @@ int TCPListener::start(void)
     return ret;
   }
   e_.fd = socket_.get_listen_fd();
-  e_.type = Event::kEventWrite;
+  e_.type = Event::kEventRead;
   e_.args = nullptr;
   e_.read_cb = std::bind(&TCPListener::accept, this, _1, _2, _3);
+  LOG_INFO("start listening, listen_fd=%d", e_.fd, e_.type);
   return ret;
 }
 

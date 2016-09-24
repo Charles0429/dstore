@@ -74,23 +74,26 @@ int EventLoop::modify_event(const Event &e)
   return ret;
 }
 
-void EventLoop::loop(void)
+int EventLoop::loop(void)
 {
   int ret = DSTORE_SUCCESS;
   while (!stop_) {
     if (DSTORE_SUCCESS != (ret = poll_api_->loop(timeout_))) {
       LOG_ERROR("poll error, ret=%d", ret);
-      return;
+      return ret;
     }
     for (auto e = ready_events_.cbegin(); e != ready_events_.cend(); ++e) {
       const Event &r = registered_events_[e->fd];
       if (e->type & r.type & Event::kEventRead) {
         e->read_cb(e->fd, Event::kEventRead, e->args);
-      } else if (e->type & r.type & Event::kEventWrite) {
+      }
+      if (e->type & r.type & Event::kEventWrite) {
         e->write_cb(e->fd, Event::kEventWrite, e->args);
       }
     }
+    clear_ready_events();
   }
+  return ret;
 }
 
 void EventLoop::destroy(void)
@@ -100,8 +103,7 @@ void EventLoop::destroy(void)
 
 void EventLoop::add_ready_event(int fd, int event_type)
 {
-  Event e;
-  e.fd = fd;
+  Event e = registered_events_[fd];
   e.type = event_type;
   ready_events_.push_back(e);
 }

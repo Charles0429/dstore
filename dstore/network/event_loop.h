@@ -15,7 +15,7 @@ class EventPollAPI;
 struct Event
 {
  public:
-  typedef std::function<void(int, int, void *)> EventCallback;
+  typedef std::function<int(int, int, void *)> EventCallback;
   static const int kEventRead = 1 << 0;
   static const int kEventWrite = 1 << 1;
   static const int kEventError = 1 << 2;
@@ -35,7 +35,7 @@ class EventLoop
   int register_event(const Event &e);
   int unregister_event(const Event &e);
   int modify_event(const Event &e);
-  void loop(void);
+  int loop(void);
   void destroy(void);
   int get_loop_size(void);
   void add_ready_event(int fd, int event_type);

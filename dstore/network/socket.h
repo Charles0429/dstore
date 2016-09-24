@@ -34,6 +34,9 @@ class Socket
   explicit Socket(int fd);
   ~Socket(void);
   void set_fd(int fd);
+  int get_fd(void);
+  int set_nonblocking(void);
+  void close(void);
   Socket &operator=(const Socket &) = delete;
   Socket(const Socket &) = delete;
  private:

@@ -8,8 +8,9 @@ using namespace dstore::common;
 using namespace dstore::network;
 
 InetAddr::InetAddr(void)
-  : host_(nullptr), port_(nullptr), is_ipv6_(false), is_ai_passive_(false),
-  is_resolved_(false)
+  : host_(nullptr), port_(nullptr), addr_(), addr_len_(sizeof(addr_)),
+  ai_family_(-1), ai_socktype_(-1), ai_protocol_(-1), is_ipv6_(false),
+  is_ai_passive_(false), is_resolved_(false)
 {
 }
 
@@ -25,34 +26,32 @@ int InetAddr::set_addr(const char *host, const char *port, const bool is_ipv6, c
   is_ipv6_ = is_ipv6;
   is_ai_passive_ = is_ai_passive;
   is_resolved_ = false;
-  ret = resolve();
-  if (DSTORE_SUCCESS != ret) {
+  if (DSTORE_SUCCESS != (ret = resolve())) {
     LOG_WARN("resolve address failed, host=%s, port=%s, is_ipv6=%d, is_ai_passive=%d",
         host, port, is_ipv6, is_ai_passive);
     return ret;
   }
-  is_resolved_ = true;
   return ret;
 }
 
 const struct sockaddr* InetAddr::get_addr(void) const
 {
-  return is_resolved_ ? &addr_ : nullptr;
+  return &addr_;
 }
 
 struct sockaddr* InetAddr::get_addr(void)
 {
-  return is_resolved_ ? &addr_ : nullptr;
+  return &addr_;
 }
 
 const int *InetAddr::get_addr_len(void) const
 {
-  return is_resolved_ ? &addr_len_ : nullptr;
+  return &addr_len_;
 }
 
 int *InetAddr::get_addr_len(void)
 {
-  return is_resolved_ ? &addr_len_ : nullptr;
+  return &addr_len_;
 }
 
 int InetAddr::resolve(void)

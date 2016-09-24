@@ -1,4 +1,5 @@
 set(NETWORK_SRCS
+  endian_operator.cpp
   buffer.cpp
   connection.cpp
   epoll.cpp

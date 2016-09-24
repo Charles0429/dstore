@@ -11,7 +11,7 @@ class Log
 {
  public:
   void log(const char *level, const char *filename, const int line, const char *format, ...);
-  static Log  &get_instance(void);
+  static Log &get_instance(void);
 };
 #define SHORT_FILE strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__
 #define LOG_INSTANCE (::dstore::common::Log::get_instance())

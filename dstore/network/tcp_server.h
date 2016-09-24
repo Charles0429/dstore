@@ -6,6 +6,7 @@
 #include <functional>
 #include "tcp_listener.h"
 #include "event_loop.h"
+#include "connection.h"
 
 namespace dstore
 {
@@ -14,23 +15,27 @@ namespace network
 class TCPListener;
 class TCPServer;
 class EventLoop;
-class Connection;
 class TCPServer
 {
  public:
-  typedef std::function<int(Connection *, bool &)> MessageDecodeCallback;
+  typedef std::function<int(Connection *)> MessageDecodeCallback;
   typedef std::function<int(Connection *)> NewMessageCallback;
   TCPServer(void);
   TCPServer(const char *host, const char *port, const bool is_ipv6);
   ~TCPServer(void);
   int start(void);
-  void loop(void);
+  int loop(void);
+  void set_message_decode_callback(const MessageDecodeCallback &message_decode);
+  void set_new_message_callback(const NewMessageCallback &new_message);
   TCPServer &operator=(const TCPServer &) = delete;
   TCPServer(const TCPServer &) = delete;
  private:
   int on_connect(int fd, InetAddr *addr);
   int on_read(int fd, int type, void *args);
   int on_write(int fd, int type, void *args);
+  int handle_close(const int64_t connection_id);
+  void remove_connection(const int64_t connection_id);
+  int set_connection_status(const int64_t connection_id, const Connection::Status status);
  private:
   std::string host_;
   std::string port_;
