@@ -107,7 +107,7 @@ int TCPServer::on_read(int fd, int type, void *args)
   const int nbytes = 1024;
   ssize_t read_bytes = read_buffer.read_fd(fd, nbytes);
   if (0 == read_bytes) {
-    if (DSTORE_SUCCESS != (ret = handle_close(connection_id))) {
+    if (DSTORE_SUCCESS != (ret = on_close(connection_id))) {
       LOG_WARN("handle close failed, ret=%d", ret);
       return ret;
     }
@@ -138,7 +138,7 @@ int TCPServer::on_write(int fd, int type, void *args)
       return ret;
     }
     if (Connection::SHUTDOWN_READ == connection->get_status()) {
-      if (DSTORE_SUCCESS != (ret = handle_close(connection_id))) {
+      if (DSTORE_SUCCESS != (ret = on_close(connection_id))) {
         LOG_WARN("handle close connection failed, ret=%d", ret);
         return ret;
       }
@@ -178,7 +178,7 @@ int TCPServer::set_connection_status(const int64_t connection_id, const Connecti
   return ret;
 }
 
-int TCPServer::handle_close(const int64_t connection_id)
+int TCPServer::on_close(const int64_t connection_id)
 {
   int ret = DSTORE_SUCCESS;
   Connection *conn = connection_map_[connection_id];

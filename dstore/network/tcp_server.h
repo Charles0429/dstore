@@ -33,7 +33,7 @@ class TCPServer
   int on_connect(int fd, InetAddr *addr);
   int on_read(int fd, int type, void *args);
   int on_write(int fd, int type, void *args);
-  int handle_close(const int64_t connection_id);
+  int on_close(const int64_t connection_id);
   void remove_connection(const int64_t connection_id);
   int set_connection_status(const int64_t connection_id, const Connection::Status status);
  private:
