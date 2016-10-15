@@ -2,6 +2,7 @@
 #define DSTORE_NETWORK_CONNECTION_H_
 
 #include <list>
+#include <memory>
 #include "event_loop.h"
 #include "socket.h"
 #include "inet_addr.h"
