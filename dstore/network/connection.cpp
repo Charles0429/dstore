@@ -5,8 +5,8 @@
 
 using namespace dstore::network;
 
-Connection::Connection(const Event &e, const InetAddr &peer)
-  : status_(Connection::INVALID), e_(e), loop_(nullptr), socket_(e.fd),
+Connection::Connection(const InetAddr &peer, Event *e)
+  : status_(Connection::INVALID), e_(e), loop_(nullptr), socket_(e->fd),
   peer_(peer), message_list_(), read_buffer_(), write_buffer_()
 {
 }
@@ -24,12 +24,12 @@ int Connection::init(EventLoop *loop)
 
 void Connection::set_event(const Event &e)
 {
-  e_ = e;
+  *e_ = e;
 }
 
 Event &Connection::get_event(void)
 {
-  return e_;
+  return *e_;
 }
 
 Socket &Connection::get_socket(void)
@@ -50,9 +50,9 @@ Buffer &Connection::get_write_buffer(void)
 int Connection::remove_write(void)
 {
   int ret = DSTORE_SUCCESS;
-  e_.type &= ~Event::kEventWrite;
-  if (DSTORE_SUCCESS != (ret = loop_->modify_event(e_))) {
-    LOG_INFO("modify event failed, fd=%d, type=%d, ret=%d", e_.fd, e_.type, ret);
+  e_->type &= ~Event::kEventWrite;
+  if (DSTORE_SUCCESS != (ret = loop_->modify_event(e_.get()))) {
+    LOG_INFO("modify event failed, fd=%d, type=%d, ret=%d", e_->fd, e_->type, ret);
     return ret;
   }
   return ret;
@@ -61,9 +61,9 @@ int Connection::remove_write(void)
 int Connection::add_write(void)
 {
   int ret = DSTORE_SUCCESS;
-  e_.type |= Event::kEventWrite;
-  if (DSTORE_SUCCESS != (ret = loop_->modify_event(e_))) {
-    LOG_INFO("modify event failed, fd=%d, type=%d, ret=%d", e_.fd, e_.type, ret);
+  e_->type |= Event::kEventWrite;
+  if (DSTORE_SUCCESS != (ret = loop_->modify_event(e_.get()))) {
+    LOG_INFO("modify event failed, fd=%d, type=%d, ret=%d", e_->fd, e_->type, ret);
     return ret;
   }
   return ret;
@@ -72,9 +72,9 @@ int Connection::add_write(void)
 int Connection::remove_read(void)
 {
   int ret = DSTORE_SUCCESS;
-  e_.type &= ~Event::kEventRead;
-  if (DSTORE_SUCCESS != (ret = loop_->modify_event(e_))) {
-    LOG_INFO("modify event failed, fd=%d, type=%d, ret=%d", e_.fd, e_.type, ret);
+  e_->type &= ~Event::kEventRead;
+  if (DSTORE_SUCCESS != (ret = loop_->modify_event(e_.get()))) {
+    LOG_INFO("modify event failed, fd=%d, type=%d, ret=%d", e_->fd, e_->type, ret);
     return ret;
   }
   return ret;
@@ -83,9 +83,9 @@ int Connection::remove_read(void)
 int Connection::add_read(void)
 {
   int ret = DSTORE_SUCCESS;
-  e_.type |= Event::kEventRead;
-  if (DSTORE_SUCCESS != (ret = loop_->modify_event(e_))) {
-    LOG_INFO("modify event failed, fd=%d, type=%d, ret=%d", e_.fd, e_.type, ret);
+  e_->type |= Event::kEventRead;
+  if (DSTORE_SUCCESS != (ret = loop_->modify_event(e_.get()))) {
+    LOG_INFO("modify event failed, fd=%d, type=%d, ret=%d", e_->fd, e_->type, ret);
     return ret;
   }
   return ret;

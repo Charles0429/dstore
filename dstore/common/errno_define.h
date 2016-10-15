@@ -15,6 +15,7 @@ namespace common
 #define DSTORE_PARSE_ADDR_EMPTY -7
 #define DSTORE_SET_SOCKET_ERROR -8
 #define DSTORE_EAGAIN -9
+#define DSTORE_INVALID_ARGUMENT -10
 }  // end namespace common
 }  // end namespace dstore
 

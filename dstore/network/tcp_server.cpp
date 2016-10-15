@@ -45,7 +45,7 @@ int TCPServer::start(void)
   }
   // register the event
   Event &e = listener_.get_listen_event();
-  if (DSTORE_SUCCESS != (ret = loop_.register_event(e))) {
+  if (DSTORE_SUCCESS != (ret = loop_.register_event(&e))) {
     LOG_ERROR("register listen event failed, ret=%d", ret);
     return ret;
   }
@@ -79,17 +79,17 @@ void TCPServer::set_new_message_callback(const NewMessageCallback &new_message)
 int TCPServer::on_connect(int fd, InetAddr *addr)
 {
   int ret = DSTORE_SUCCESS;
-  Event e;
-  e.fd = fd;
-  e.type = Event::kEventRead;
-  e.args = reinterpret_cast<void *>(next_connection_id_);
-  e.read_cb = std::bind(&TCPServer::on_read, this, _1, _2, _3);
-  e.write_cb = std::bind(&TCPServer::on_write, this, _1, _2, _3);
+  Event *e = new Event();
+  e->fd = fd;
+  e->type = Event::kEventRead;
+  e->args = reinterpret_cast<void *>(next_connection_id_);
+  e->read_cb = std::bind(&TCPServer::on_read, this, _1, _2, _3);
+  e->write_cb = std::bind(&TCPServer::on_write, this, _1, _2, _3);
   if (DSTORE_SUCCESS != (ret = loop_.register_event(e))) {
-    LOG_WARN("register event failed, fd=%d, type=%d, ret=%d", e.fd, e.type, ret);
+    LOG_WARN("register event failed, fd=%d, type=%d, ret=%d", e->fd, e->type, ret);
     return ret;
   }
-  Connection *connection = new Connection(e, *addr);
+  Connection *connection = new Connection(*addr, e);
   connection_map_[next_connection_id_++] = connection;
   if (DSTORE_SUCCESS != (ret = connection->init(&loop_))) {
     LOG_WARN("init connection failed, ret=%d", ret);

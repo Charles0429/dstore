@@ -43,6 +43,7 @@ foreach(src_file ${TEST_SRCS})
   set (EXECUTE_TEST_SRCS ${SRCS} "dstore/test/${src_file}")
   string(REPLACE "." ";" src_list ${src_file})
   list(GET src_list 0 EXECUTABLE_NAME)
+  message(STATUS "${EXECUTE_TEST_SRCS}")
   add_executable(${EXECUTABLE_NAME} ${EXECUTE_TEST_SRCS})
 endforeach(src_file)
 

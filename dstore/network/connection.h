@@ -24,7 +24,7 @@ class Connection
     SHUTDOWN_READ,
     SHUTDOWN_WRITE,
   };
-  Connection(const Event &e, const InetAddr &peer);
+  Connection(const InetAddr &peer, Event *e);
   int init(EventLoop *loop);
   void set_event(const Event &e);
   Event &get_event(void);
@@ -47,7 +47,7 @@ class Connection
   Connection(const Connection &) = delete;
  private:
   Status status_;
-  Event e_;
+  std::unique_ptr<Event> e_;
   EventLoop *loop_;
   Socket socket_;
   InetAddr peer_;
