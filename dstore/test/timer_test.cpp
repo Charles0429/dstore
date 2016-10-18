@@ -48,6 +48,14 @@ int main(void)
       return ret;
     }
   }
+  for (int i = 9; i < 100; i += 9) {
+    LOG_INFO("unregistering timers");
+    Event *e = events[i];
+    if (DSTORE_SUCCESS != (ret = loop.unregister_event(e))) {
+      LOG_WARN("unregister event failed");
+      return ret;
+    }
+  }
   if (DSTORE_SUCCESS != (ret = loop.loop())) {
     LOG_WARN("loop failed, ret=%d", ret);
     return ret;

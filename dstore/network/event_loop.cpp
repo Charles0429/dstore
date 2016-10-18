@@ -196,11 +196,11 @@ void EventLoop::down_timer_heap(const Index i, const Index size, std::vector<Eve
 
 void EventLoop::up_timer_heap(const Index i, std::vector<Event *> &heap)
 {
-  Index c = i;
+  int64_t c = static_cast<int64_t>(i);
   if (0 == i) {
     return;
   }
-  for (Index parent = (c - 1) / 2; parent > 0; parent = (parent - 1) / 2) {
+  for (int64_t parent = (c - 1) / 2; parent >= 0; parent = (parent - 1) / 2) {
     if (parent == c || heap[parent]->timeout < heap[c]->timeout) {
       break;
     } else {
@@ -243,8 +243,7 @@ void EventLoop::remove_timer_heap(const Event *e)
 {
   timer_heap_[e->index]->timeout = -1;
   adjust_timer_heap(e->index, timer_heap_.size(), timer_heap_);
-  swap_timer_event(0, timer_heap_.size() - 1);
-  timer_heap_.pop_back();
+  pop_timer_heap();
 }
 
 void EventLoop::update_timer_heap(const Event *e)
