@@ -10,6 +10,8 @@ set(NETWORK_SRCS
   socket_operator.cpp
   tcp_listener.cpp
   tcp_server.cpp
+  tcp_connector.cpp
+  tcp_client.cpp
   PARENT_SCOPE
 )
 MESSAGE(STATUS "${NETWORK_SRCS}")

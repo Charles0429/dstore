@@ -17,6 +17,8 @@ namespace network
   ssize_t recv(int fd, void *buf, size_t size);
   ssize_t send(int fd, const void *buf, size_t size);
   int close(int fd);
+  int connect(int fd, const struct sockaddr *addr, int addr_len);
+  bool is_connect_ok(int fd);
 }  // end namespace network
 }  // end namespace dstore
 

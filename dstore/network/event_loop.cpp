@@ -32,7 +32,7 @@ int EventLoop::init(EventPollAPI *poll_api)
   return ret;
 }
 
-int EventLoop::register_event(Event *e)
+int EventLoop::register_event(std::shared_ptr<Event> e)
 {
   int ret = DSTORE_SUCCESS;
   const int type = e->type;
@@ -53,7 +53,7 @@ int EventLoop::register_event(Event *e)
   return ret;
 }
 
-int EventLoop::unregister_event(Event *e)
+int EventLoop::unregister_event(std::shared_ptr<Event> e)
 {
   int ret = DSTORE_SUCCESS;
   const int type = e->type;
@@ -74,7 +74,7 @@ int EventLoop::unregister_event(Event *e)
   return ret;
 }
 
-int EventLoop::modify_event(Event *e)
+int EventLoop::modify_event(std::shared_ptr<Event> e)
 {
   int ret = DSTORE_SUCCESS;
   const int type = e->type;
@@ -106,7 +106,7 @@ int EventLoop::loop(void)
     }
     process_timeout_events();
     for (auto e = ready_events_.cbegin(); e != ready_events_.cend(); ++e) {
-      const Event *r = registered_events_[e->fd];
+      const std::shared_ptr<Event> r = registered_events_[e->fd];
       if (e->type & r->type & Event::kEventRead) {
         e->read_cb(e->fd, Event::kEventRead, e->args);
       }
@@ -136,7 +136,7 @@ void EventLoop::clear_ready_events(void)
   ready_events_.clear();
 }
 
-int EventLoop::register_timer_event(Event *e)
+int EventLoop::register_timer_event(std::shared_ptr<Event> e)
 {
   int ret = DSTORE_SUCCESS;
   if ((e->timeout <= 0) || (e->timeout > std::numeric_limits<int32_t>::max())) {
@@ -148,7 +148,7 @@ int EventLoop::register_timer_event(Event *e)
   return ret;
 }
 
-int EventLoop::unregister_timer_event(const Event *e)
+int EventLoop::unregister_timer_event(std::shared_ptr<Event> e)
 {
   int ret = DSTORE_SUCCESS;
   if (e->index >= timer_heap_.size()) {
@@ -160,7 +160,7 @@ int EventLoop::unregister_timer_event(const Event *e)
   return ret;
 }
 
-int EventLoop::modify_timer_event(Event *e)
+int EventLoop::modify_timer_event(std::shared_ptr<Event> e)
 {
   int ret = DSTORE_SUCCESS;
   if (e->index >= timer_heap_.size()) {
@@ -178,7 +178,7 @@ void EventLoop::swap_timer_event(const Index i, const Index j)
   std::swap(timer_heap_[i]->index, timer_heap_[j]->index);
 }
 
-void EventLoop::down_timer_heap(const Index i, const Index size, std::vector<Event *> &heap)
+void EventLoop::down_timer_heap(const Index i, const Index size, std::vector<std::shared_ptr<Event>> &heap)
 {
   Index p = i;
   for (Index child = 2 * p + 1; child < size; child = 2 * p + 1) {
@@ -194,7 +194,7 @@ void EventLoop::down_timer_heap(const Index i, const Index size, std::vector<Eve
   }
 }
 
-void EventLoop::up_timer_heap(const Index i, std::vector<Event *> &heap)
+void EventLoop::up_timer_heap(const Index i, std::vector<std::shared_ptr<Event>> &heap)
 {
   int64_t c = static_cast<int64_t>(i);
   if (0 == i) {
@@ -210,7 +210,7 @@ void EventLoop::up_timer_heap(const Index i, std::vector<Event *> &heap)
   }
 }
 
-void EventLoop::adjust_timer_heap(const Index i, const Index size, std::vector<Event *> &heap)
+void EventLoop::adjust_timer_heap(const Index i, const Index size, std::vector<std::shared_ptr<Event>> &heap)
 {
   if (i > 0 && heap[i]->timeout <= heap[(i-1)/2]->timeout) {
     up_timer_heap(i, heap);
@@ -219,7 +219,7 @@ void EventLoop::adjust_timer_heap(const Index i, const Index size, std::vector<E
   }
 }
 
-void EventLoop::push_timer_heap(Event *e)
+void EventLoop::push_timer_heap(std::shared_ptr<Event> e)
 {
   e->index = timer_heap_.size();
   e->timeout += get_milliseconds();
@@ -234,19 +234,19 @@ void EventLoop::pop_timer_heap(void)
   timer_heap_.pop_back();
 }
 
-Event *EventLoop::top_timer_heap(void)
+std::shared_ptr<Event> EventLoop::top_timer_heap(void)
 {
   return timer_heap_.size() == 0 ? nullptr : timer_heap_.front();
 }
 
-void EventLoop::remove_timer_heap(const Event *e)
+void EventLoop::remove_timer_heap(const std::shared_ptr<Event> e)
 {
   timer_heap_[e->index]->timeout = -1;
   adjust_timer_heap(e->index, timer_heap_.size(), timer_heap_);
   pop_timer_heap();
 }
 
-void EventLoop::update_timer_heap(const Event *e)
+void EventLoop::update_timer_heap(const std::shared_ptr<Event> e)
 {
   adjust_timer_heap(e->index, timer_heap_.size(), timer_heap_);
 }
@@ -260,7 +260,7 @@ int EventLoop::get_timeout(void)
 void EventLoop::process_timeout_events(void)
 {
   const int64_t now = get_milliseconds();
-  Event *e = top_timer_heap();
+  std::shared_ptr<Event> e = top_timer_heap();
   while (e != nullptr && e->timeout <= now) {
     e->timer_cb(e->fd, Event::kEventTimer, e->args);
     pop_timer_heap();

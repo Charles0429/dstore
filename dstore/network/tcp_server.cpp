@@ -44,8 +44,8 @@ int TCPServer::start(void)
     return ret;
   }
   // register the event
-  Event &e = listener_.get_listen_event();
-  if (DSTORE_SUCCESS != (ret = loop_.register_event(&e))) {
+  std::shared_ptr<Event> e = listener_.get_listen_event();
+  if (DSTORE_SUCCESS != (ret = loop_.register_event(e))) {
     LOG_ERROR("register listen event failed, ret=%d", ret);
     return ret;
   }
@@ -79,7 +79,7 @@ void TCPServer::set_new_message_callback(const NewMessageCallback &new_message)
 int TCPServer::on_connect(int fd, InetAddr *addr)
 {
   int ret = DSTORE_SUCCESS;
-  Event *e = new Event();
+  std::shared_ptr<Event> e(new Event());
   e->fd = fd;
   e->type = Event::kEventRead;
   e->args = reinterpret_cast<void *>(next_connection_id_);
@@ -89,7 +89,7 @@ int TCPServer::on_connect(int fd, InetAddr *addr)
     LOG_WARN("register event failed, fd=%d, type=%d, ret=%d", e->fd, e->type, ret);
     return ret;
   }
-  Connection *connection = new Connection(*addr, e);
+  std::shared_ptr<Connection> connection(new Connection(*addr, e));
   connection_map_[next_connection_id_++] = connection;
   if (DSTORE_SUCCESS != (ret = connection->init(&loop_))) {
     LOG_WARN("init connection failed, ret=%d", ret);
@@ -102,7 +102,7 @@ int TCPServer::on_read(int fd, int type, void *args)
 {
   int ret = DSTORE_SUCCESS;
   int64_t connection_id = reinterpret_cast<int64_t>(args);
-  Connection *connection = connection_map_[connection_id];
+  std::shared_ptr<Connection> connection = connection_map_[connection_id];
   Buffer &read_buffer = connection->get_read_buffer();
   const int nbytes = 1024;
   ssize_t read_bytes = read_buffer.read_fd(fd, nbytes);
@@ -124,7 +124,7 @@ int TCPServer::on_write(int fd, int type, void *args)
 {
   int ret = DSTORE_SUCCESS;
   int64_t connection_id = reinterpret_cast<int64_t>(args);
-  Connection *connection = connection_map_[connection_id];
+  std::shared_ptr<Connection> connection = connection_map_[connection_id];
   Buffer &write_buffer = connection->get_write_buffer();
   ssize_t write_bytes = write_buffer.write_fd(fd);
   if (-1 == write_bytes) {
@@ -152,16 +152,15 @@ int TCPServer::on_write(int fd, int type, void *args)
 
 void TCPServer::remove_connection(const int64_t connection_id)
 {
-  Connection *conn = connection_map_[connection_id];
+  std::shared_ptr<Connection> conn = connection_map_[connection_id];
   conn->close();
-  delete conn;
   connection_map_.erase(connection_id);
 }
 
 int TCPServer::set_connection_status(const int64_t connection_id, const Connection::Status status)
 {
   int ret = DSTORE_SUCCESS;
-  Connection *conn = connection_map_[connection_id];
+  std::shared_ptr<Connection> conn = connection_map_[connection_id];
   if (status == Connection::SHUTDOWN_READ) {
     if (DSTORE_SUCCESS != (ret = conn->remove_read())) {
       LOG_WARN("remove connection read event failed, ret=%d", ret);
@@ -181,7 +180,7 @@ int TCPServer::set_connection_status(const int64_t connection_id, const Connecti
 int TCPServer::on_close(const int64_t connection_id)
 {
   int ret = DSTORE_SUCCESS;
-  Connection *conn = connection_map_[connection_id];
+  std::shared_ptr<Connection> conn = connection_map_[connection_id];
   assert(conn != nullptr);
   bool has_data_to_write = conn->pending_write();
   if (!has_data_to_write) {

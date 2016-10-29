@@ -2,6 +2,7 @@
 #define DSTORE_NETWORK_TCP_LISTENER_H_
 
 #include <functional>
+#include <memory>
 #include "socket.h"
 #include "event_loop.h"
 #include "inet_addr.h"
@@ -18,7 +19,7 @@ class TCPListener
   ~TCPListener(void);
   int set_addr(const char *host, const char *port, const bool is_ipv6);
   void set_new_connection_callback(NewConnectionCallback on_connect);
-  Event &get_listen_event(void);
+  std::shared_ptr<Event> get_listen_event(void);
   int start(void);
   int accept(int fd, int type, void *args);
   TCPListener &operator=(const TCPListener &) = delete;
@@ -26,7 +27,7 @@ class TCPListener
  private:
   InetAddr addr_;
   ListenSocket socket_;
-  Event e_;
+  std::shared_ptr<Event> e_;
   NewConnectionCallback on_connect_;
 };
 }  // end namespace network

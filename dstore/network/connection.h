@@ -22,10 +22,11 @@ class Connection
   {
     INVALID = 0,
     ACTIVE,
+    CONNECTING,
     SHUTDOWN_READ,
     SHUTDOWN_WRITE,
   };
-  Connection(const InetAddr &peer, Event *e);
+  Connection(const InetAddr &peer, std::shared_ptr<Event> e);
   int init(EventLoop *loop);
   void set_event(const Event &e);
   Event &get_event(void);
@@ -42,13 +43,14 @@ class Connection
   Connection::Status get_status(void);
   void close(void);
   bool pending_write(void);
+  bool is_connect_ok(void);
   std::list<Message *> &get_message_list(void);
   void clear_message_list(void);
   Connection &operator=(const Connection &) = delete;
   Connection(const Connection &) = delete;
  private:
   Status status_;
-  std::unique_ptr<Event> e_;
+  std::shared_ptr<Event> e_;
   EventLoop *loop_;
   Socket socket_;
   InetAddr peer_;

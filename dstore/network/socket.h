@@ -37,6 +37,9 @@ class Socket
   int get_fd(void);
   int set_nonblocking(void);
   void close(void);
+  int socket(const InetAddr &addr);
+  int connect(const InetAddr &addr);
+  bool is_connect_ok(void);
   Socket &operator=(const Socket &) = delete;
   Socket(const Socket &) = delete;
  private:

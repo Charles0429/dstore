@@ -1,4 +1,5 @@
 #include <vector>
+#include <memory>
 #include "event_loop.h"
 #include "epoll.h"
 #include "time_operator.h"
@@ -26,9 +27,9 @@ int main(void)
     return ret;
   }
 
-  std::vector<Event *> events;
+  std::vector<std::shared_ptr<Event>> events;
   for (int i = 0; i < 100; i++) {
-    Event *e = new Event();
+    std::shared_ptr<Event> e(new Event());
     e->type = Event::kEventTimer;
     e->timeout = 1000 * (i+1);
     e->timer_cb = std::bind(timer_func, _1, _2, _3);
@@ -50,7 +51,7 @@ int main(void)
   }
   for (int i = 9; i < 100; i += 9) {
     LOG_INFO("unregistering timers");
-    Event *e = events[i];
+    std::shared_ptr<Event> e = events[i];
     if (DSTORE_SUCCESS != (ret = loop.unregister_event(e))) {
       LOG_WARN("unregister event failed");
       return ret;

@@ -37,9 +37,9 @@ class EventLoop
   EventLoop(void);
   ~EventLoop(void);
   int init(EventPollAPI *api);
-  int register_event(Event *e);
-  int unregister_event(Event *e);
-  int modify_event(Event *e);
+  int register_event(std::shared_ptr<Event> e);
+  int unregister_event(std::shared_ptr<Event> e);
+  int modify_event(std::shared_ptr<Event> e);
   int loop(void);
   void destroy(void);
   int get_loop_size(void);
@@ -47,27 +47,27 @@ class EventLoop
   EventLoop &operator=(const EventLoop &) = delete;
   EventLoop(const EventLoop &) = delete;
  private:
-  typedef std::vector<Event *>::size_type Index;
+  typedef std::vector<std::shared_ptr<Event>>::size_type Index;
   void clear_ready_events(void);
-  int register_timer_event(Event *e);
-  int unregister_timer_event(const Event *e);
-  int modify_timer_event(Event *e);
+  int register_timer_event(std::shared_ptr<Event> e);
+  int unregister_timer_event(const std::shared_ptr<Event> e);
+  int modify_timer_event(std::shared_ptr<Event> e);
   void swap_timer_event(const Index i, const Index j);
-  void down_timer_heap(const Index i, const Index size, std::vector<Event *> &heap);
-  void up_timer_heap(const Index i, std::vector<Event *> &heap);
-  void adjust_timer_heap(const Index i, const Index size, std::vector<Event *> &heap);
-  void push_timer_heap(Event *e);
+  void down_timer_heap(const Index i, const Index size, std::vector<std::shared_ptr<Event>> &heap);
+  void up_timer_heap(const Index i, std::vector<std::shared_ptr<Event>> &heap);
+  void adjust_timer_heap(const Index i, const Index size, std::vector<std::shared_ptr<Event>> &heap);
+  void push_timer_heap(std::shared_ptr<Event> e);
   void pop_timer_heap(void);
-  Event *top_timer_heap(void);
-  void remove_timer_heap(const Event *e);
-  void update_timer_heap(const Event *e);
+  std::shared_ptr<Event> top_timer_heap(void);
+  void remove_timer_heap(const std::shared_ptr<Event> e);
+  void update_timer_heap(const std::shared_ptr<Event> e);
   int get_timeout(void);
   void process_timeout_events(void);
  private:
   std::unique_ptr<EventPollAPI> poll_api_;
-  std::unordered_map<int, Event *> registered_events_;
+  std::unordered_map<int, std::shared_ptr<Event>> registered_events_;
   std::list<Event> ready_events_;
-  std::vector<Event *> timer_heap_;
+  std::vector<std::shared_ptr<Event>> timer_heap_;
   bool stop_;
 };
 }  // end namespace network

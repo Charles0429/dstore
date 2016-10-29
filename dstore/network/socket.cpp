@@ -127,6 +127,33 @@ int Socket::get_fd(void)
   return fd_;
 }
 
+int Socket::socket(const InetAddr &addr)
+{
+  int ret = DSTORE_SUCCESS;
+  int fd = dstore::network::socket(addr.get_family(), addr.get_socket_type(), addr.get_protocol());
+  if (-1 == fd) {
+    LOG_WARN("create listen socket failed");
+    ret = DSTORE_LISTEN_ERROR;
+    return ret;
+  }
+  fd_ = fd;
+  return ret;
+}
+
+int Socket::connect(const InetAddr &addr)
+{
+  int ret = DSTORE_SUCCESS;
+  ret = dstore::network::connect(fd_, addr.get_addr(), *addr.get_addr_len());
+  if (-1 == ret) {
+    if (errno == EINPROGRESS) {
+      ret = DSTORE_CONNECT_IN_PROGRESS;
+    } else {
+      ret = DSTORE_CONNECT_ERROR;
+    }
+  }
+  return ret;
+}
+
 int Socket::set_nonblocking(void)
 {
   int ret = DSTORE_SUCCESS;
@@ -142,4 +169,9 @@ int Socket::set_nonblocking(void)
 void Socket::close(void)
 {
   dstore::network::close(fd_);
+}
+
+bool Socket::is_connect_ok(void)
+{
+  return dstore::network::is_connect_ok(fd_);
 }

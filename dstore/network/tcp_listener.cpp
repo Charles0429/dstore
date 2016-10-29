@@ -8,7 +8,7 @@ using namespace dstore::common;
 using namespace dstore::network;
 
 TCPListener::TCPListener(void)
-  : addr_(), socket_(), e_(), on_connect_()
+  : addr_(), socket_(), e_(new Event()), on_connect_()
 {
 }
 
@@ -16,7 +16,7 @@ TCPListener::~TCPListener(void)
 {
 }
 
-int TCPListener::set_addr(const char *host, const char *port, bool is_ipv6)
+int TCPListener::set_addr(const char *host, const char *port, const bool is_ipv6)
 {
   int ret = DSTORE_SUCCESS;
   const bool is_ai_passive = true;
@@ -33,7 +33,7 @@ void TCPListener::set_new_connection_callback(NewConnectionCallback on_connect)
   on_connect_ = on_connect;
 }
 
-Event &TCPListener::get_listen_event(void)
+std::shared_ptr<Event> TCPListener::get_listen_event(void)
 {
   return e_;
 }
@@ -61,11 +61,11 @@ int TCPListener::start(void)
     LOG_WARN("listen failed, ret=%d", ret);
     return ret;
   }
-  e_.fd = socket_.get_listen_fd();
-  e_.type = Event::kEventRead;
-  e_.args = nullptr;
-  e_.read_cb = std::bind(&TCPListener::accept, this, _1, _2, _3);
-  LOG_INFO("start listening, listen_fd=%d", e_.fd, e_.type);
+  e_->fd = socket_.get_listen_fd();
+  e_->type = Event::kEventRead;
+  e_->args = nullptr;
+  e_->read_cb = std::bind(&TCPListener::accept, this, _1, _2, _3);
+  LOG_INFO("start listening, listen_fd=%d", e_->fd, e_->type);
   return ret;
 }
 

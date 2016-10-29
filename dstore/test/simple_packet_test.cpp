@@ -1,5 +1,6 @@
 #include <list>
 #include <iostream>
+#include <memory>
 #include "tcp_server.h"
 #include "connection.h"
 #include "message.h"
@@ -15,7 +16,7 @@ struct simple_packet
   char *data;
 };
 
-int decode_message(Connection *conn)
+int decode_message(std::shared_ptr<Connection> conn)
 {
   int ret = DSTORE_SUCCESS;
   const size_t header_len = sizeof(int32_t);
@@ -42,7 +43,7 @@ int decode_message(Connection *conn)
   return ret;
 }
 
-int process_message(Connection *conn)
+int process_message(std::shared_ptr<Connection> conn)
 {
   int ret = DSTORE_SUCCESS;
   LOG_INFO("start processing message");

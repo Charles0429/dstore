@@ -117,5 +117,18 @@ int close(int fd)
   return ::close(fd);
 }
 
+int connect(int fd, const struct sockaddr *addr, int addrlen)
+{
+  return ::connect(fd, addr, addrlen);
+}
+
+bool is_connect_ok(int fd)
+{
+  int error = 0;
+  unsigned int sz = sizeof(error);
+  int ret = getsockopt(fd, SOL_SOCKET, SO_ERROR, static_cast<void *>(&error), &sz);
+  return !((ret < 0) || error);
+}
+
 }  // end namespace network
 }  // end namespace dstore

@@ -16,6 +16,8 @@ namespace common
 #define DSTORE_SET_SOCKET_ERROR -8
 #define DSTORE_EAGAIN -9
 #define DSTORE_INVALID_ARGUMENT -10
+#define DSTORE_CONNECT_ERROR -11
+#define DSTORE_CONNECT_IN_PROGRESS -12
 }  // end namespace common
 }  // end namespace dstore
 
