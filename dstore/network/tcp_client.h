@@ -17,12 +17,15 @@ class TCPClient
  public:
   typedef std::function<int(std::shared_ptr<Connection>)> MessageDecodeCallback;
   typedef std::function<int(std::shared_ptr<Connection>)> NewMessageCallback;
+  typedef std::function<int(std::shared_ptr<Connection>)> ConnectCompeleteCallback;
 
   TCPClient(void);
-  ~TCPClient(void);
+  int start(void);
   int connect(const char *host, const char *port, const bool is_ipv6);
+  int loop(void);
   void set_message_decode_callback(const MessageDecodeCallback &message_decode);
   void set_new_message_callback(const NewMessageCallback &new_message);
+  void set_connect_complete_callback(const ConnectCompeleteCallback &connect_complete);
  private:
   int on_read(int fd, int type, void *args);
   int on_write(int fd, int type, void *args);
@@ -36,6 +39,7 @@ class TCPClient
   int64_t next_connection_id_;
   MessageDecodeCallback message_decoder_;
   NewMessageCallback new_message_callback_;
+  ConnectCompeleteCallback connect_complete_;
 };
 }  // namespace network
 }  // namespace dstore

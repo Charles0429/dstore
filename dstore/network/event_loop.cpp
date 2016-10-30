@@ -18,7 +18,6 @@ EventLoop::EventLoop(void)
 
 EventLoop::~EventLoop(void)
 {
-  destroy();
 }
 
 int EventLoop::init(EventPollAPI *poll_api)

@@ -1,5 +1,6 @@
 #include "tcp_client.h"
 #include <cassert>
+#include "epoll.h"
 #include "errno_define.h"
 #include "log.h"
 
@@ -7,8 +8,20 @@ using namespace std::placeholders;
 using namespace dstore::network;
 
 TCPClient::TCPClient(void)
-  : loop_(), connection_map_(), next_connection_id_(0)
+  : loop_(), connection_map_(), next_connection_id_(0), message_decoder_(),
+  new_message_callback_(), connect_complete_()
 {
+}
+
+int TCPClient::start(void)
+{
+  int ret = DSTORE_SUCCESS;
+  EventPollAPI *poll_api = new EpollAPI(&loop_);
+  if (DSTORE_SUCCESS != (ret = loop_.init(poll_api))) {
+    LOG_ERROR("init loop failed, ret=%d", ret);
+    return ret;
+  }
+  return ret;
 }
 
 int TCPClient::connect(const char *host, const char *port, const bool is_ipv6)
@@ -55,6 +68,16 @@ int TCPClient::connect(const char *host, const char *port, const bool is_ipv6)
   return ret;
 }
 
+int TCPClient::loop(void)
+{
+  int ret = DSTORE_SUCCESS;
+  if (DSTORE_SUCCESS != (ret = loop_.loop())) {
+    LOG_WARN("loop failed, ret=%d", ret);
+    return ret;
+  }
+  return ret;
+}
+
 void TCPClient::set_message_decode_callback(const MessageDecodeCallback &message_decode)
 {
   message_decoder_ = message_decode;
@@ -63,6 +86,11 @@ void TCPClient::set_message_decode_callback(const MessageDecodeCallback &message
 void TCPClient::set_new_message_callback(const NewMessageCallback &new_message)
 {
   new_message_callback_ = new_message;
+}
+
+void TCPClient::set_connect_complete_callback(const ConnectCompeleteCallback &connect_complete)
+{
+  connect_complete_ = connect_complete;
 }
 
 int TCPClient::on_read(int fd, int type, void *args)
@@ -123,11 +151,13 @@ int TCPClient::on_write(int fd, int type, void *args)
         LOG_WARN("remove write event from connection=%d failed, ret=%d", connection_id, ret);
         return ret;
       }
+      connect_complete_(conn);
     } else {
       remove_connection(connection_id);
       return ret;
     }
   }
+  ret = DSTORE_CONNECT_IN_PROGRESS == ret ? DSTORE_SUCCESS : ret;
   return ret;
 }
 

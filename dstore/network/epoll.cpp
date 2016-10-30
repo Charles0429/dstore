@@ -15,9 +15,7 @@ EpollAPI::EpollAPI(EventLoop *loop)
 
 EpollAPI::~EpollAPI()
 {
-  if (nullptr != events_) {
-    dstore_free(events_);
-  }
+  destory();
 }
 
 int EpollAPI::init(void)
@@ -167,5 +165,6 @@ void EpollAPI::destory(void)
 {
   if (nullptr != events_) {
     dstore_free(events_);
+    events_ = nullptr;
   }
 }

@@ -50,6 +50,8 @@ int process_message(std::shared_ptr<Connection> conn)
   std::list<Message *> &message_list = conn->get_message_list();
   for (auto iter = message_list.begin(); iter != message_list.end();) {
     LOG_INFO("start dealing with message");
+    simple_packet *packet = static_cast<simple_packet *>((*iter)->get_request());
+    LOG_INFO("message from client, len=%d, data=%s", packet->data_len, packet->data);
     char buffer[1024];
     snprintf(buffer, sizeof(buffer), "hello world");
     Buffer &write_buffer = conn->get_write_buffer();
@@ -60,7 +62,6 @@ int process_message(std::shared_ptr<Connection> conn)
       LOG_INFO("add write event failed, ret=%d", ret);
       return ret;
     }
-    simple_packet *packet = static_cast<simple_packet *>((*iter)->get_request());
     delete packet;
     delete *iter;
     iter = message_list.erase(iter);

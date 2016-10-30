@@ -29,7 +29,7 @@ class EpollAPI : public EventPollAPI
   int epfd_;
   struct epoll_event *events_;
   int loop_size_;
-  std::shared_ptr<EventLoop> loop_;
+  EventLoop *loop_;
 };
 }  // end namespace network
 }  // end namespace dstore

@@ -40,7 +40,9 @@ int TCPConnector::connect(void)
 {
   int ret = DSTORE_SUCCESS;
   if (DSTORE_SUCCESS != (ret = socket_.connect(addr_))) {
-    LOG_WARN("connect failed, ret=%d", ret);
+    if (DSTORE_CONNECT_IN_PROGRESS != ret) {
+      LOG_WARN("connect failed, ret=%d", ret);
+    }
     return ret;
   }
   return ret;
