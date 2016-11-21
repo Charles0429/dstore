@@ -8,8 +8,8 @@
 using namespace dstore::common;
 using namespace dstore::network;
 
-EpollAPI::EpollAPI(EventLoop *loop)
-  : epfd_(0), events_(nullptr), loop_size_(0), loop_(loop)
+EpollAPI::EpollAPI(EventLoop *lop)
+  : epfd_(0), events_(nullptr), loop_size_(0), loop_(lop)
 {
 }
 
